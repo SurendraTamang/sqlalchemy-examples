@@ -20,3 +20,20 @@ So, SQLAlchemy serves two main roles:
 2. **Object Relational Mapper (ORM)**: The ORM part is about translating your requests into the robot's language automatically. It lets you work with your toys (data) using concepts you're familiar with, like objects in Python, without worrying about the details of how those toys are stored or retrieved from the box. This makes it easier to work with your data without knowing all the complexities of SQL.
 
 In summary, SQLAlchemy gives you a powerful and flexible way to interact with your database. You can choose to be very specific about how you manage your data or let SQLAlchemy handle the details for you, making it easier and more efficient to work with your databases in Python.
+
+### Understanding SQLAlchemy
+SQLAlchemy consists of two distinct components:
+
+* Core: A fully featured SQL abstraction toolkit that provides a smooth layer over relational databases, allowing you to execute SQL statements through Python code.
+* ORM (Object-Relational Mapping): Builds upon the Core and provides a high-level ORM for mapping Python classes to database tables, allowing you to interact with your database using Pythonic object-oriented models instead of writing SQL queries.
+
+
+## Installation
+```bash
+pip install SQLAlchemy
+```
+While practicing I am creating seperate python environment by using **venv**
+
+```bash
+python3 -m venv .venv
+```
