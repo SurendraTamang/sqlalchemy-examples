@@ -533,3 +533,78 @@ session.close()  # Close the session when done
 
 In summary, whether to close a session immediately after committing changes or to continue using it depends on your application's requirements and the specific scenario at hand. Managing sessions correctly is key to ensuring your application interacts with the database efficiently and safely.
 
+#### How to interact with Existing table in SQLAlchemy?
+To use an existing table in a database with SQLAlchemy, you have a couple of options depending on whether you're using SQLAlchemy's Core or ORM component. Here's how you can declare or use an existing table with both:
+
+### Using SQLAlchemy Core for Existing Tables
+
+If you're working directly with SQLAlchemy Core, you can use the `Table` object to reflect (automatically load) the table's metadata from the database. This method doesn't require you to declare the column details manually.
+
+```python
+from sqlalchemy import create_engine, MetaData, Table
+
+# Create an engine
+engine = create_engine('sqlite:///mydatabase.db')
+
+# Reflect the existing table
+metadata = MetaData()
+my_existing_table = Table('my_existing_table', metadata, autoload_with=engine)
+
+# Now you can use `my_existing_table` to construct queries
+```
+
+### Using SQLAlchemy ORM for Existing Tables
+
+If you're using SQLAlchemy's ORM, you'll typically map a class to an existing table using the `declarative_base` method combined with the `autoload_with` argument. However, with recent versions of SQLAlchemy, the preferred method is to use the `automap_base` function to automatically generate mapped classes from an existing database schema.
+
+#### Reflecting Tables with Automap
+
+```python
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+
+# Create an engine
+engine = create_engine('sqlite:///mydatabase.db')
+
+# Reflect the tables
+Base = automap_base()
+Base.prepare(engine, reflect=True)
+
+# Access the mapped class
+MyExistingTable = Base.classes.my_existing_table
+
+# Now you can use `MyExistingTable` with a session to query the table
+session = Session(engine)
+for instance in session.query(MyExistingTable).limit(10):
+    print(instance)
+```
+
+#### Manually Mapping a Class to an Existing Table
+
+If you need more control or the automap doesn't suit your needs (e.g., if you want to add additional methods to the class), you can manually map a class to an existing table using the `Table` object with `autoload_with` and then declare your class using the `mapper` function.
+
+```python
+from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy.orm import mapper, Session
+
+engine = create_engine('sqlite:///mydatabase.db')
+metadata = MetaData()
+
+# Reflect the existing table
+my_table = Table('my_existing_table', metadata, autoload_with=engine)
+
+# Define the class to map to the table
+class MyExistingTable:
+    pass
+
+# Map the class to the table
+mapper(MyExistingTable, my_table)
+
+# Now you can use `MyExistingTable` with a session to query the table
+session = Session(engine)
+for instance in session.query(MyExistingTable).limit(10):
+    print(instance)
+```
+
+These examples show how to declare or use an existing table in SQLAlchemy, either with the Core or ORM approach. Choose the method that best fits your application's architecture and your preferred way of working with the database.
