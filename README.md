@@ -413,3 +413,123 @@ Using `MetaData` implicitly through the ORM provides several benefits:
 - **Flexibility**: You can still access the `MetaData` object directly through `Base.metadata` if you need to perform custom schema operations, reflect an existing database, or integrate with SQLAlchemy Core functionality.
 
 In summary, while defining ORM models in SQLAlchemy, `MetaData` is managed implicitly, providing a seamless and efficient way to translate high-level Python class definitions into database schema operations.
+
+
+#### Engine, Session workflow
+Yes, that's right! When you're using SQLAlchemy, you usually start with two main concepts: the **engine** and the **session**. Let's go through them one by one in simple terms.
+
+### 1. Engine
+
+The engine is like the start button of your car or the power switch of your robot friend. It's the way you tell SQLAlchemy how to connect to your database. When you create an engine, you're essentially setting up the details about which database you're going to talk to, such as where it is (like a web address or a file on your computer) and how to log in.
+
+Here's how you might set it up in Python code:
+
+```python
+from sqlalchemy import create_engine
+
+# Create an engine that knows how to connect to your database
+engine = create_engine('sqlite:///mydatabase.db')  # For a SQLite database stored in a file named "mydatabase.db"
+```
+
+This line of code doesn't actually connect to the database right away. It just sets up the details so SQLAlchemy knows how to connect when it needs to.
+
+### 2. Session
+
+Once your engine is ready, the next step is to start a session. You can think of a session as a conversation between your application (you) and the database (the toy box). During this conversation, you'll tell the database what you want to do, like adding new toys, changing them, or taking some out.
+
+A session keeps track of all these requests and, when you're ready, it sends them all to the database at once. This is handy because it means the database doesn't have to update everything immediately each time you ask for a small change, making the whole process more efficient.
+
+Here's a simple way to start a session:
+
+```python
+from sqlalchemy.orm import sessionmaker
+
+# Create a sessionmaker bound to your engine
+Session = sessionmaker(bind=engine)
+
+# Start a new session
+session = Session()
+```
+
+With the session started, you can now interact with your database. You can add new records, query for data, or update existing records. Here's a quick example of adding a new "toy":
+
+```python
+# Assuming you have a Toy class defined as a model
+new_toy = Toy(name="Teddy Bear", color="Brown")
+session.add(new_toy)
+
+# Save the new toy to the database
+session.commit()
+```
+
+And that's the gist of starting with SQLAlchemy! You set up an engine to know where and how to connect to your database, and then you start a session to talk to the database, telling it what you want to do.
+
+
+#### Details about Session's commit
+In simple terms, the `commit` method is like saying "Okay, let's make everything we just did official." When you're using a session in SQLAlchemy (or most database systems), you can think of all the changes you make (like adding a new toy to the box, painting an existing toy, or even deciding to give one away) as being in a temporary state. They're planned but not finalized. This is useful because it allows you to change your mind or correct mistakes before making anything permanent.
+
+Here's a little breakdown:
+
+### Before Committing
+- **Adding or Modifying Data**: Imagine you're arranging toys in your room. You decide where everything should go, move a few things around, and maybe set aside some toys to donate. But until you actually put them in their new spots (or in the donation box), all these decisions are just plans.
+- **Temporary State**: In database terms, all the changes you make during a session are kept in a "temporary" state. They're remembered by the session, but they haven't been applied to the database yet. This means nobody else who might be looking at your toys (or data) can see these changes; they still see everything as it was before you started.
+
+### Committing
+- **Making Changes Official**: When you're happy with all the changes you've made during your session, you call `commit`. This is like finally putting the toys in their new spots and taking the donation box out to the charity. You're making all your changes official and permanent.
+- **Updating the Database**: Calling `commit` tells the session to send all the changes to the database. The database updates all the records accordingly, and now everyone who accesses it will see the updated state of things.
+
+### After Committing
+- **Changes Are Permanent**: Once you've committed your changes, they're part of the database. If you made a mistake, you would need to start a new session to make corrections (like deciding you actually didn't want to donate that one toy and buying it back).
+- **Starting Fresh**: After committing, your session is like a clean slate. You can start making new changes, adding more toys, or whatever else you need to do. If you're done, you can close the session, knowing that all your changes are safe and sound in the database.
+
+Here's how it looks in code when you're using SQLAlchemy:
+
+```python
+session.add(new_toy)  # Plan to add a new toy
+session.commit()  # Make it official
+```
+
+So, `commit` is your way of telling the database, "Yes, I'm sure about these changes. Please update everything accordingly."
+
+
+### Shall we close the session or close it?
+Whether to close a session after committing changes or continue using it for additional operations depends on the context of your application and your specific needs. Here are a few considerations to help you decide:
+
+### Closing a Session
+- **Isolation**: If your operations require strict isolation from each other, closing the session after a commit ensures that subsequent operations start with a fresh state. This can be particularly important in scenarios where the consistency of data is critical after each set of operations.
+- **Resource Management**: Closing a session when it's no longer needed can help with resource management, freeing up database connections and other resources. This is especially important in applications with high loads or limited resources.
+
+### Continuing with the Same Session
+- **Performance**: In some cases, it might be more efficient to keep using the same session for multiple operations, especially if those operations are closely related or dependent on each other. Opening and closing sessions repeatedly can introduce overhead.
+- **Transactional Work**: If you're performing a series of operations that logically belong together as a unit of work, you might choose to keep the session open until all those operations are complete. You would commit the transaction to save the changes and then close the session.
+
+### Best Practices
+
+- **Explicit Control**: It's generally a good practice to have explicit control over when your sessions begin and end. This helps avoid unintended side effects and makes the flow of your application clearer.
+- **Error Handling**: Always ensure proper error handling around your database operations. This includes potentially rolling back a session if an operation fails before you commit.
+- **Session Lifecycle Management**: For web applications, you might use request-based session management, where a new session is created at the beginning of a web request and closed at the end of the request, ensuring that each request is handled in isolation.
+
+### Example Patterns
+
+**Short-Lived Sessions (Close After Commit)**
+```python
+# Perform an operation and then close the session
+session.add(new_record)
+session.commit()
+session.close()  # Close the session to free resources
+```
+
+**Continued Use (Keep Session Open)**
+```python
+# Continue using the session for related operations
+session.add(first_record)
+session.commit()  # Commit the first set of changes
+
+session.add(second_record)  # Continue using the same session
+# Later...
+session.commit()  # Commit subsequent changes
+session.close()  # Close the session when done
+```
+
+In summary, whether to close a session immediately after committing changes or to continue using it depends on your application's requirements and the specific scenario at hand. Managing sessions correctly is key to ensuring your application interacts with the database efficiently and safely.
+
