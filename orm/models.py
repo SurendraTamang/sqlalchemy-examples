@@ -16,8 +16,11 @@ class Country(Base):
     population = Column(Integer, name="Population")
 
 
-# Create all which is on Base
-#Base.metadata.drop_all(engine)
 
-# Creating all 
-Base.metadata.create_all(engine)
+if __name__ == '__main__':
+
+    # Create all which is on Base
+    #Base.metadata.drop_all(engine)
+
+    # Creating all 
+        Base.metadata.create_all(engine)
