@@ -7,7 +7,7 @@ from models import Country
 engine = create_engine('sqlite:///countries.db')
 
 with Session(engine) as session:
-    country = Country(name="Nepal", continent="Asia", population=31143833)
+    country = Country(name="India", continent="Asia", population=1438054073 )
     session.add(country)
     session.commit()
     print("Added successfully")
